@@ -283,7 +283,7 @@ statistics calculators as they use flonums instead.
 The aggregate building operations can take any stream of values, and not just
 a list. Basically, if it can be iterated with @code{for}, you can aggregate it.
 
-* @code{(aggregate aggregates xs)} -> (listof aggregator?)
+* @code{(aggregate xs aggregates)} -> (listof aggregator?)
 
 Visits each value from xs and passes it through each of the given
 aggregates. On completion, each aggregate is then finalized with
