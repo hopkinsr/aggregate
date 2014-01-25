@@ -1,6 +1,9 @@
 aggregate
 =========
 
+IMPORTANT: Currently in development. There may be breakages before the
+first release of this as a proper Racket 6 package.
+
 A Racket library to implement and use SQL-style aggregate functions over a stream of values, as well as simple wrappers for the math/statistics modules for use in exploratory analysis.
 
 Appetiser
