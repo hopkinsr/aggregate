@@ -55,8 +55,7 @@
 ;(provide aggregate)
 (provide (contract-out
           [aggregate (->* (sequence?) ((listof aggregator?))
-                          (listof aggregator?))]
-          [aggregate/agg-val (-> sequence? (listof aggregator?) list?)]
+                          list?)]
           [aggregate/summary (-> sequence? (listof (list/c symbol? number?)))]
           [group (->* (sequence?) (#:key (-> any/c any) #:aggregates (-> (listof aggregator?)))
                       (hash/c any/c (listof aggregator?)))]
@@ -257,15 +256,18 @@
 ;;;
 ;;; aggregate building operations + wrappers
 ;;;
-(define (aggregate xs (aggs (list (-->count))))
+; aggregate* - return the aggregates
+; meant to be private, a user most probably just wants
+; the values and will use aggregate
+(define (aggregate* xs aggs)
   (for ([x xs])
     (agg-step/each aggs x))
   (agg-finish/list aggs))
 
-; Helper to aggregate a sequence and just return the aggregated values
-; and not the structs themselves.
-(define (aggregate/agg-val xs aggs)
-  (map agg-val (aggregate xs aggs)))
+; aggregate - return the finished values
+(define (aggregate xs (aggs (list (-->count))))
+  (for/list ([agg (aggregate* xs aggs)])
+    (agg-val agg)))
 
 (define (aggregate/summary xs)
   (define agg-summary (aggregate xs (list (-->count) (-->min) (-->max) (-->mean))))
