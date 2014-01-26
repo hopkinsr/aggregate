@@ -349,6 +349,19 @@ the aggregates themselves.
                                 #:aggregates (thunk (list (-->count)
                                                           (-->sum))))]
 
+* @code{(tally xs #:key)}
+
+@code{group} with the default values can perform simple binning to say
+how many times a group appears but returns the aggregates themselves. 
+@code{tally} does the same grouping and only returns the final counts.
+
+@examples[#:eval my-eval
+                 (tally '(5 5 5 5 6 7 7 8 8 8))]
+
+@examples[#:eval my-eval
+                 (tally (range 10)
+                        #:key even?)]
+
 @section{math/statistics wrappers}
 
 Many of these wrappers are intended mainly for use at a REPL or for quick

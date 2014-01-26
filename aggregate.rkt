@@ -41,7 +41,8 @@
          aggregate/agg-val
          aggregate/summary
          group
-         group/agg-val)
+         group/agg-val
+         tally)
 
 ; math/statistics wrappers
 (provide statistics-summary
@@ -236,6 +237,14 @@
       (hash-set! grouped group-key (map agg-val aggs))))
   grouped)
 
+; like Mathematica tally
+(define (tally xs #:key (key identity))
+  (define grouped (group/agg-val xs #:key key #:aggregates (λ () (list (-->count)))))
+  (for ([group-key (hash-keys grouped)])
+    (let ([agg-vals (hash-ref grouped group-key)])
+      (hash-set! grouped group-key (first agg-vals))))
+  grouped)
+
 ;;;
 ;;; math/statistics wrappers
 ;;;
@@ -307,4 +316,10 @@
                                #:key even?
                                #:aggregates (thunk (list (-->count)
                                                          (-->sum))))
-                (make-hash (list '(#t . (5 20)) '(#f . (5 25))))))
+                (make-hash (list '(#t . (5 20)) '(#f . (5 25)))))
+  
+  (check-equal? (tally (range 10)
+                       #:key even?)
+                (make-hash (list '(#t . 5) '(#f . 5))))
+  (check-equal? (tally '(5 5 5 5 6 7 7 8 8 8))
+                (make-hash (list '(5 . 4) '(6 . 1) '(7 . 2) '(8 . 3)))))
