@@ -15,7 +15,6 @@
 ;;; 
 
 (require racket/generic)
-(require math/statistics)
 
 ; types and interfaces
 (provide (contract-out
