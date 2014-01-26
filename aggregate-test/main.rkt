@@ -18,3 +18,15 @@
               (list 1 2 3 4 5))
 (check-equal? (aggregate (range 10) (list (-->min) (-->max) (-->count) (-->sum) (-->mean)))
               (list 0 9 10 45 9/2))
+
+; aggregate/summary
+(check-equal? (aggregate/summary empty)
+              (list (list 'count 0)
+                    (list 'min (void))
+                    (list 'max (void))
+                    (list 'mean (void))))
+(check-equal? (aggregate/summary (range 10))
+              (list (list 'count 10)
+                    (list 'min 0)
+                    (list 'max 9)
+                    (list 'mean 9/2)))

@@ -56,7 +56,7 @@
 (provide (contract-out
           [aggregate (->* (sequence?) ((listof aggregator?))
                           list?)]
-          [aggregate/summary (-> sequence? (listof (list/c symbol? number?)))]
+          [aggregate/summary (-> sequence? (listof (list/c symbol? (or/c number? void?))))]
           [group (->* (sequence?) (#:key (-> any/c any) #:aggregates (-> (listof aggregator?)))
                       (hash/c any/c (listof aggregator?)))]
           [group/agg-val (->* (sequence?) (#:key (-> any/c any) #:aggregates (-> (listof aggregator?)))
@@ -272,10 +272,10 @@
   (match agg-summary
     [(list count min max mean)
      ; =>
-     (list (list 'count (agg-val count))
-           (list 'min (agg-val min))
-           (list 'max (agg-val max))
-           (list 'mean (agg-val mean)))]))
+     (list (list 'count count)
+           (list 'min min)
+           (list 'max max)
+           (list 'mean mean))]))
 
 (define (group xs #:key (key identity) #:aggregates (aggregates (λ () (list (-->count)))))
   (let ([groups (make-hash)])
