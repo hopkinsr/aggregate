@@ -20,39 +20,56 @@
 (require math/statistics)
 
 ; types and interfaces
-(provide aggregator?
-         agg-val
-         agg-step
-         agg-finish)
+(provide (contract-out
+          [aggregator? (-> any/c boolean?)]
+          [agg-val (-> aggregator? any)]
+          [agg-step (-> aggregator? any/c void)]
+          [agg-finish (-> aggregator? aggregator?)]))
 
 ; standard aggregates
-(provide aggregate/min-item
-         aggregate/max-item)
+(provide (contract-out
+          [aggregate/min-item (-> aggregator? any)]
+          [aggregate/max-item (-> aggregator? any)]))
 
 ; constructor wrappers
-(provide -->count
-         -->sum
-         -->min
-         -->max
-         -->mean
-         -->list)
+(provide (contract-out
+          [-->count (->* () (any/c #:key (-> any/c integer?))
+                         aggregator?)]
+          [-->sum (->* () (any/c #:key (-> any/c number?))
+                       aggregator?)]
+          [-->min (->* () (any/c #:key (-> any/c any) #:<operator (-> any/c boolean?))
+                       aggregator?)]
+          [-->max (->* () (any/c #:key (-> any/c any) #:>operator (-> any/c boolean?))
+                       aggregator?)]
+          [-->mean (->* () (any/c #:key (-> any/c number?))
+                        aggregator?)]
+          [-->list (->* () (any/c #:key (-> any/c any))
+                        aggregator?)]))
 
 ; aggregate building operations + wrappers
-(provide aggregate
-         aggregate/agg-val
-         aggregate/summary
-         group
-         group/agg-val
-         tally
-         gather-by
-         gather-by/values)
+;(provide aggregate)
+(provide (contract-out
+          [aggregate (->* (sequence?) ((listof aggregator?))
+                          (listof aggregator?))]
+          [aggregate/agg-val (-> sequence? (listof aggregator?) list?)]
+          [aggregate/summary (-> sequence? (listof (list/c symbol? number?)))]
+          [group (->* (sequence?) (#:key (-> any/c any) #:aggregates (-> (listof aggregator?)))
+                      (hash/c any/c (listof aggregator?)))]
+          [group/agg-val (->* (sequence?) (#:key (-> any/c any) #:aggregates (-> (listof aggregator?)))
+                              (hash/c any/c any/c))]
+          [tally (-> sequence? (hash/c any/c integer?))]
+          [gather-by (->* (sequence?) (#:key (-> any/c any))
+                          (hash/c any/c list?))]
+          [gather-by/values (->* (sequence?) (#:key (-> any/c any))
+                                 (listof list?))]))
 
 ; math/statistics wrappers
-(provide statistics-summary
-         statistics-extended-summary
-         collect-statistics
-         collect-statistics/summary
-         collect-statistics/extended-summary)
+(provide (contract-out
+          [statistics-summary (-> statistics? (listof (list/c symbol? flonum?)))]
+          [statistics-extended-summary (-> statistics? (listof (list/c symbol? flonum?)))]
+          [collect-statistics (-> sequence? statistics?)]
+          [collect-statistics/summary (-> sequence? (listof (list/c symbol? flonum?)))]
+          [collect-statistics/extended-summary (-> sequence? (listof (list/c symbol? flonum?)))]))
 
 ;;;
 ;;; types and interfaces
@@ -295,7 +312,7 @@
   grouped)
 
 ; like Mathematica GatherBy and just return the values in a list
-(define (gather-by/values xs #:key key)
+(define (gather-by/values xs #:key (key identity))
   (define gathered (gather-by xs #:key key))
   (hash-values gathered))
 
