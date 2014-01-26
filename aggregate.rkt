@@ -43,7 +43,9 @@
          aggregate/summary
          group
          group/agg-val
-         tally)
+         tally
+         gather-by
+         gather-by/values)
 
 ; math/statistics wrappers
 (provide statistics-summary
@@ -281,6 +283,22 @@
       (hash-set! grouped group-key (first agg-vals))))
   grouped)
 
+; like Mathematica GatherBy - but GatherBy returns just the values we
+; return the keys and values
+(define (gather-by xs #:key (key identity))
+  (define grouped (group/agg-val xs
+                                 #:key key
+                                 #:aggregates (thunk (list (-->list)))))
+  (for ([group-key (hash-keys grouped)])
+    (let ([agg-vals (hash-ref grouped group-key)])
+      (hash-set! grouped group-key (first agg-vals))))
+  grouped)
+
+; like Mathematica GatherBy and just return the values in a list
+(define (gather-by/values xs #:key key)
+  (define gathered (gather-by xs #:key key))
+  (hash-values gathered))
+
 ;;;
 ;;; math/statistics wrappers
 ;;;
@@ -369,6 +387,22 @@
                                                          (-->list))))
                 (make-hash (list '(#t . (5 (0 2 4 6 8)))
                                  '(#f . (5 (1 3 5 7 9))))))
+  
+  (check-equal? (gather-by (range 10)
+                           #:key even?)
+                (make-hash (list '(#t . (0 2 4 6 8))
+                                 '(#f . (1 3 5 7 9)))))
+  
+  (check-equal? (gather-by/values (range 10)
+                                  #:key even?)
+                (list '(0 2 4 6 8)
+                      '(1 3 5 7 9)))
+  
+  (check-equal? (gather-by (range 10)
+                           #:key (λ (x) (modulo x 3)))
+                (make-hash (list '(0 . (0 3 6 9))
+                                 '(1 . (1 4 7))
+                                 '(2 . (2 5 8)))))
   
   (check-equal? (tally (range 10)
                        #:key even?)

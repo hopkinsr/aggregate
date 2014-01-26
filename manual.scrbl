@@ -67,6 +67,13 @@ Lets get tasting. First, some standard definitions.
                                            #:key even?
                                            #:aggregates (thunk (list (-->count)
                                                                      (-->list))))]
+           @item{Gathering related items.
+                 
+                 @examples[#:eval my-eval
+                                  (gather-by (range 10)
+                                             #:key (λ (x) (modulo x 3)))
+                                  (gather-by/values (range 10)
+                                                    #:key (λ (x) (modulo x 3)))]}
            @item{They don't have to be numbers. We want to know how many different products
                  do we have in each section, along with how much stock.
                  
