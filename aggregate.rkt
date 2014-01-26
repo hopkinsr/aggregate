@@ -317,6 +317,11 @@
                 (list 0 9 10 45 9/2))
   
   (check-equal? (group/agg-val (range 10)
+                               #:key (const #t)
+                               #:aggregates (thunk (list (-->min) (-->max) (-->count) (-->sum) (-->mean))))
+                (make-hash (list '(#t . (0 9 10 45 9/2)))))
+  
+  (check-equal? (group/agg-val (range 10)
                                #:key even?
                                #:aggregates (thunk (list (-->count)
                                                          (-->sum))))
