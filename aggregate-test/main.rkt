@@ -48,3 +48,18 @@
               (make-hash (list '(0 . 1) '(1 . 1) '(2 . 1) '(3 . 1) '(4 . 1))))
 (check-equal? (tally (range 10) #:key even?)
               (make-hash (list '(#t . 5) '(#f . 5))))
+
+; gather-by
+(check-equal? (gather-by empty) (make-hash))
+(check-equal? (gather-by (range 10) #:key (const #t))
+              (make-hash (list '(#t . (0 1 2 3 4 5 6 7 8 9)))))
+(check-equal? (gather-by (range 10) #:key (λ (x) (modulo x 3)))
+              (make-hash (list '(0 . (0 3 6 9)) '(1 . (1 4 7)) '(2 . (2 5 8)))))
+
+; gather-by/values
+(check-equal? (gather-by/values empty) empty)
+(check-equal? (gather-by/values (range 10) #:key (const #t))
+              (list (list 0 1 2 3 4 5 6 7 8 9)))
+; doesn't guarantee the order
+#;(check-equal? (gather-by/values (range 10) #:key (λ (x) (modulo x 3)))
+              (list '(0 3 6 9) '(1 4 7) '(2 5 8)))
