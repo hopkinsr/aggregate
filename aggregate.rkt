@@ -312,6 +312,10 @@
   (check-aggregate/apply xs -->max max)
   (check-aggregate xs -->mean mean)
   
+  (check-equal? (aggregate/agg-val (range 10)
+                                   (list (-->min) (-->max) (-->count) (-->sum) (-->mean)))
+                (list 0 9 10 45 9/2))
+  
   (check-equal? (group/agg-val (range 10)
                                #:key even?
                                #:aggregates (thunk (list (-->count)
