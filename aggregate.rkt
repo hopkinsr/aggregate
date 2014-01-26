@@ -301,4 +301,10 @@
   (check-aggregate/apply xs -->sum +)
   (check-aggregate/apply xs -->min min)
   (check-aggregate/apply xs -->max max)
-  (check-aggregate xs -->mean mean))
+  (check-aggregate xs -->mean mean)
+  
+  (check-equal? (group/agg-val (range 10)
+                               #:key even?
+                               #:aggregates (thunk (list (-->count)
+                                                         (-->sum))))
+                (make-hash (list '(#t . (5 20)) '(#f . (5 25))))))
