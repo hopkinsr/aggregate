@@ -219,6 +219,11 @@
       (agg-step agg x))
     aggs)
   
+  (define (finish-aggs aggs)
+    (for ([agg aggs])
+      (agg-finish agg))
+    aggs)
+  
   (let ([groups (make-hash)])
     (for ([x xs])
       (let* ([group-key (key x)]
@@ -228,6 +233,10 @@
             (begin
               (let ([aggs (update-aggs (aggregates) x)])
                 (hash-set! groups group-key aggs))))))
+    ; visited everything - now finish the aggregates
+    (for ([group-key (hash-keys groups)])
+      (let ([aggs (hash-ref groups group-key)])
+        (finish-aggs aggs)))
     groups))
 
 (define (group/agg-val xs #:key (key identity) #:aggregates (aggregates (λ () (list (-->count)))))
