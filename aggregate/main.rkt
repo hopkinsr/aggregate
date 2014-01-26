@@ -9,6 +9,7 @@
 ;;;
 ;;; * requires + provides
 ;;; * types and interfaces
+;;; * interface helpers
 ;;; * standard aggregates
 ;;; * constructor wrappers
 ;;; * aggregate building operations + wrappers
@@ -22,6 +23,13 @@
           [agg-val (-> aggregator? any)]
           [agg-step (-> aggregator? any/c aggregator?)]
           [agg-finish (-> aggregator? aggregator?)]))
+
+; interface helpers
+(provide (contract-out
+          [agg-step/each (-> (listof aggregator?) any/c void)]
+          [agg-step/list (-> (listof aggregator?) any/c (listof aggregator?))]
+          [agg-finish/each (-> (listof aggregator?) void)]
+          [agg-finish/list (-> (listof aggregator?) (listof aggregator?))]))
 
 ; standard aggregates
 (provide (contract-out
@@ -67,6 +75,24 @@
   (agg-val aggregator)
   (agg-step aggregator x)
   (agg-finish aggregator))
+
+;;;
+;;; interface helpers
+;;;
+(define (agg-step/each aggs x)
+  (for-each (λ (agg) (agg-step agg x))
+            aggs))
+
+(define (agg-step/list aggs x)
+  (for/list ([agg aggs])
+    (agg-step agg x)))
+
+(define (agg-finish/each aggs)
+  (for-each agg-finish aggs))
+
+(define (agg-finish/list aggs)
+  (for/list ([agg aggs])
+    (agg-finish agg)))
 
 ;;;
 ;;; standard aggregates
@@ -233,11 +259,8 @@
 ;;;
 (define (aggregate xs (aggs (list (-->count))))
   (for ([x xs])
-    (for ([agg aggs])
-      (agg-step agg x)))
-  (for/list ([agg aggs])
-    (agg-finish agg)
-    agg))
+    (agg-step/each aggs x))
+  (agg-finish/list aggs))
 
 ; Helper to aggregate a sequence and just return the aggregated values
 ; and not the structs themselves.
@@ -255,29 +278,18 @@
            (list 'mean (agg-val mean)))]))
 
 (define (group xs #:key (key identity) #:aggregates (aggregates (λ () (list (-->count)))))
-  (define (update-aggs aggs x)
-    (for ([agg aggs])
-      (agg-step agg x))
-    aggs)
-  
-  (define (finish-aggs aggs)
-    (for ([agg aggs])
-      (agg-finish agg))
-    aggs)
-  
   (let ([groups (make-hash)])
     (for ([x xs])
       (let* ([group-key (key x)]
              [group-value (hash-ref groups group-key #f)])
         (if group-value
-            (update-aggs group-value x)
-            (begin
-              (let ([aggs (update-aggs (aggregates) x)])
-                (hash-set! groups group-key aggs))))))
+            (agg-step/each group-value x)
+            (let ([aggs (agg-step/list (aggregates) x)])
+              (hash-set! groups group-key aggs)))))
     ; visited everything - now finish the aggregates
     (for ([group-key (hash-keys groups)])
       (let ([aggs (hash-ref groups group-key)])
-        (finish-aggs aggs)))
+        (agg-finish/each aggs)))
     groups))
 
 (define (group/agg-val xs #:key (key identity) #:aggregates (aggregates (λ () (list (-->count)))))
