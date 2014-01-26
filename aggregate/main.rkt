@@ -20,7 +20,7 @@
 (provide (contract-out
           [aggregator? (-> any/c boolean?)]
           [agg-val (-> aggregator? any)]
-          [agg-step (-> aggregator? any/c void)]
+          [agg-step (-> aggregator? any/c aggregator?)]
           [agg-finish (-> aggregator? aggregator?)]))
 
 ; standard aggregates
@@ -86,7 +86,8 @@
             [new (if (void? old)
                      unlocked
                      (+ old unlocked))])
-       (set-aggregate/count-value! agg new)))
+       (set-aggregate/count-value! agg new)
+       agg))
    
    (define (agg-finish agg)
      (agg-val agg))])
@@ -105,7 +106,8 @@
             [new (if (void? old)
                      unlocked
                      (+ old unlocked))])
-       (set-aggregate/sum-value! agg new)))
+       (set-aggregate/sum-value! agg new)
+       agg))
    
    (define (agg-finish agg)
      (agg-val agg))])
@@ -126,7 +128,8 @@
        (when (or (void? old) (<operator unlocked old))
          (begin
            (set-aggregate/min-item! agg x)
-           (set-aggregate/min-value! agg unlocked)))))
+           (set-aggregate/min-value! agg unlocked)
+           agg))))
    
    (define (agg-finish agg)
      (agg-val agg))])
@@ -147,7 +150,8 @@
        (when (or (void? old) (>operator unlocked old))
          (begin
            (set-aggregate/max-item! agg x)
-           (set-aggregate/max-value! agg unlocked)))))
+           (set-aggregate/max-value! agg unlocked)
+           agg))))
    
    (define (agg-finish agg)
      (agg-val agg))])
@@ -168,7 +172,8 @@
                            unlocked
                            (+ old-value unlocked))])
        (set-aggregate/mean-n! agg (add1 old-n))
-       (set-aggregate/mean-value! agg new-value)))
+       (set-aggregate/mean-value! agg new-value)
+       agg))
    
    (define (agg-finish agg)
      (let* ([old (aggregate/mean-value agg)]
@@ -191,7 +196,8 @@
             [new (if (void? old)
                      (list unlocked)
                      (cons unlocked old))])
-       (set-aggregate/list-value! agg new)))
+       (set-aggregate/list-value! agg new)
+       agg))
    
    (define (agg-finish agg)
      (let* ([old (aggregate/list-value agg)]
