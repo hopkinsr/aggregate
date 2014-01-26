@@ -38,7 +38,7 @@
 
 ; constructor wrappers
 (provide (contract-out
-          [-->count (->* () (any/c #:key (-> any/c integer?))
+          [-->count (->* () (integer? #:key (-> any/c integer?))
                          aggregator?)]
           [-->sum (->* () (any/c #:key (-> any/c number?))
                        aggregator?)]
@@ -108,9 +108,7 @@
      (let* ([key (aggregate/count-key agg)]
             [unlocked (key x)]
             [old (aggregate/count-value agg)]
-            [new (if (void? old)
-                     unlocked
-                     (+ old unlocked))])
+            [new (+ old unlocked)])
        (set-aggregate/count-value! agg new)
        agg))
    
@@ -235,7 +233,7 @@
 ;;;
 ;;; constructor wrappers
 ;;;
-(define (-->count (initial (void)) #:key (key (const 1)))
+(define (-->count (initial 0) #:key (key (const 1)))
   (aggregate/count initial key))
 
 (define (-->sum (initial (void)) #:key (key identity))
@@ -248,7 +246,7 @@
   (aggregate/max initial key >operator (void)))
 
 (define (-->mean (initial (void)) #:key (key identity))
-  (aggregate/mean initial key 0))
+  (aggregate/mean initial key (if (void? initial) 0 1)))
 
 (define (-->list (initial (void)) #:key (key identity))
   (aggregate/list initial key))
