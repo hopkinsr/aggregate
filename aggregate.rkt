@@ -34,7 +34,8 @@
          -->sum
          -->min
          -->max
-         -->mean)
+         -->mean
+         -->list)
 
 ; aggregate building operations + wrappers
 (provide aggregate
@@ -169,6 +170,29 @@
        (set-aggregate/mean-value! agg new)
        (agg-val agg)))])
 
+(struct aggregate/list ((value #:mutable) key)
+  #:transparent
+  #:methods gen:aggregator
+  [(define (agg-val agg)
+     (aggregate/list-value agg))
+   
+   (define (agg-step agg x)
+     (let* ([key (aggregate/list-key agg)]
+            [unlocked (key x)]
+            [old (aggregate/list-value agg)]
+            [new (if (void? old)
+                     (list unlocked)
+                     (cons unlocked old))])
+       (set-aggregate/list-value! agg new)))
+   
+   (define (agg-finish agg)
+     (let* ([old (aggregate/list-value agg)]
+            [new (if (void? old)
+                     (void)
+                     (reverse old))])
+       (set-aggregate/list-value! agg new)
+       (agg-val agg)))])
+
 ;;;
 ;;; constructor wrappers
 ;;;
@@ -186,6 +210,9 @@
 
 (define (-->mean (initial (void)) #:key (key identity))
   (aggregate/mean initial key 0))
+
+(define (-->list (initial (void)) #:key (key identity))
+  (aggregate/list initial key))
 
 ;;;
 ;;; aggregate building operations + wrappers
@@ -335,6 +362,13 @@
                                #:aggregates (thunk (list (-->count)
                                                          (-->sum))))
                 (make-hash (list '(#t . (5 20)) '(#f . (5 25)))))
+  
+  (check-equal? (group/agg-val (range 10)
+                               #:key even?
+                               #:aggregates (thunk (list (-->count)
+                                                         (-->list))))
+                (make-hash (list '(#t . (5 (0 2 4 6 8)))
+                                 '(#f . (5 (1 3 5 7 9))))))
   
   (check-equal? (tally (range 10)
                        #:key even?)

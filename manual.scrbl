@@ -53,14 +53,20 @@ Lets get tasting. First, some standard definitions.
                                   (group '(5 5 5 5 6 7 7 8 8 8))]}
            
            @item{Slightly more advanced binning of numbers: we want to know how many
-                 are odd and even in a given range, along with the respective sums.
+                 are odd and even in a given range, along with the respective sums
+                 or even the actual values.
                  
                  @examples[#:eval my-eval
-                                  (group (range 10)
-                                         #:key even?
-                                         #:aggregates (thunk (list (-->count)
-                                                                   (-->sum))))]
+                                  (group/agg-val (range 10)
+                                                 #:key even?
+                                                 #:aggregates (thunk (list (-->count)
+                                                                           (-->sum))))]
                  }
+           @examples[#:eval my-eval
+                            (group/agg-val (range 10)
+                                           #:key even?
+                                           #:aggregates (thunk (list (-->count)
+                                                                     (-->list))))]
            @item{They don't have to be numbers. We want to know how many different products
                  do we have in each section, along with how much stock.
                  
