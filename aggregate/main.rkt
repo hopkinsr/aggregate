@@ -40,13 +40,13 @@
 (provide (contract-out
           [-->count (->* () (integer? #:key (-> any/c integer?))
                          aggregator?)]
-          [-->sum (->* () (any/c #:key (-> any/c number?))
+          [-->sum (->* () ((or/c number? void?) #:key (-> any/c number?))
                        aggregator?)]
           [-->min (->* () (any/c #:key (-> any/c any) #:<operator (-> any/c boolean?))
                        aggregator?)]
           [-->max (->* () (any/c #:key (-> any/c any) #:>operator (-> any/c boolean?))
                        aggregator?)]
-          [-->mean (->* () (any/c #:key (-> any/c number?))
+          [-->mean (->* () ((or/c number? void?) #:key (-> any/c number?))
                         aggregator?)]
           [-->list (->* () (any/c #:key (-> any/c any))
                         aggregator?)]))
