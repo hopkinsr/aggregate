@@ -289,11 +289,11 @@
   ; helpers for testing based on standard functions provided by racket
   (define (check-aggregate xs agg standard-function)
     (check-equal? (aggregate/agg-val xs (list (agg)))
-                (list (standard-function xs))))
-
+                  (list (standard-function xs))))
+  
   (define (check-aggregate/apply xs agg standard-function)
     (check-equal? (aggregate/agg-val xs (list (agg)))
-                (list (apply standard-function xs))))
+                  (list (apply standard-function xs))))
   
   (define xs (range 100))
   
