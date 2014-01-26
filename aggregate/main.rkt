@@ -58,10 +58,9 @@
                           list?)]
           [aggregate/summary (-> sequence? (listof (list/c symbol? (or/c number? void?))))]
           [group (->* (sequence?) (#:key (-> any/c any) #:aggregates (-> (listof aggregator?)))
-                      (hash/c any/c (listof aggregator?)))]
-          [group/agg-val (->* (sequence?) (#:key (-> any/c any) #:aggregates (-> (listof aggregator?)))
-                              (hash/c any/c any/c))]
-          [tally (-> sequence? (hash/c any/c integer?))]
+                      (hash/c any/c list?))]
+          [tally (->* (sequence?) (#:key (-> any/c any))
+                      (hash/c any/c integer?))]
           [gather-by (->* (sequence?) (#:key (-> any/c any))
                           (hash/c any/c list?))]
           [gather-by/values (->* (sequence?) (#:key (-> any/c any))
@@ -277,7 +276,10 @@
            (list 'max max)
            (list 'mean mean))]))
 
-(define (group xs #:key (key identity) #:aggregates (aggregates (λ () (list (-->count)))))
+; like we do for aggregate* and aggregate - we'll have a private
+; implementation to return the aggregates and a user facing one
+; to return the finalised values
+(define (group* xs #:key (key identity) #:aggregates (aggregates (λ () (list (-->count)))))
   (let ([groups (make-hash)])
     (for ([x xs])
       (let* ([group-key (key x)]
@@ -292,16 +294,16 @@
         (agg-finish/each aggs)))
     groups))
 
-(define (group/agg-val xs #:key (key identity) #:aggregates (aggregates (λ () (list (-->count)))))
-  (define grouped (group xs #:key key #:aggregates aggregates))
-  (for ([group-key (hash-keys grouped)])
-    (let ([aggs (hash-ref grouped group-key)])
-      (hash-set! grouped group-key (map agg-val aggs))))
-  grouped)
+(define (group xs #:key (key identity) #:aggregates (aggregates (λ () (list (-->count)))))
+  (define groups (group* xs #:key key #:aggregates aggregates))
+  (for ([group-key (hash-keys groups)])
+    (let ([aggs (hash-ref groups group-key)])
+      (hash-set! groups group-key (map agg-val aggs))))
+  groups)
 
 ; like Mathematica tally
 (define (tally xs #:key (key identity))
-  (define grouped (group/agg-val xs #:key key #:aggregates (λ () (list (-->count)))))
+  (define grouped (group xs #:key key #:aggregates (λ () (list (-->count)))))
   (for ([group-key (hash-keys grouped)])
     (let ([agg-vals (hash-ref grouped group-key)])
       (hash-set! grouped group-key (first agg-vals))))
@@ -310,9 +312,9 @@
 ; like Mathematica GatherBy - but GatherBy returns just the values we
 ; return the keys and values
 (define (gather-by xs #:key (key identity))
-  (define grouped (group/agg-val xs
-                                 #:key key
-                                 #:aggregates (thunk (list (-->list)))))
+  (define grouped (group xs
+                         #:key key
+                         #:aggregates (thunk (list (-->list)))))
   (for ([group-key (hash-keys grouped)])
     (let ([agg-vals (hash-ref grouped group-key)])
       (hash-set! grouped group-key (first agg-vals))))
