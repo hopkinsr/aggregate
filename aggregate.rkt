@@ -40,7 +40,8 @@
 (provide aggregate
          aggregate/agg-val
          aggregate/summary
-         group)
+         group
+         group/agg-val)
 
 ; math/statistics wrappers
 (provide statistics-summary
@@ -227,6 +228,13 @@
               (let ([aggs (update-aggs (aggregates) x)])
                 (hash-set! groups group-key aggs))))))
     groups))
+
+(define (group/agg-val xs #:key (key identity) #:aggregates (aggregates (λ () (list (-->count)))))
+  (define grouped (group xs #:key key #:aggregates aggregates))
+  (for ([group-key (hash-keys grouped)])
+    (let ([aggs (hash-ref grouped group-key)])
+      (hash-set! grouped group-key (map agg-val aggs))))
+  grouped)
 
 ;;;
 ;;; math/statistics wrappers

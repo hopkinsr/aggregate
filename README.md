@@ -86,6 +86,15 @@ Example:
           #f (list (aggregate/count 5 #<procedure:const>)
                    (aggregate/sum 25 #<procedure:identity>)))
 
+Example:
+
+    > (group/agg-val (range 10)
+                     #:key even?
+                     #:aggregates (thunk (list (-->count)
+                                               (-->sum))))
+
+    '#hash((#t . (5 20)) (#f . (5 25)))
+
 They don’t have to be numbers. We want to know how many different products do we have in each section, along with how much stock.
 
 Example:

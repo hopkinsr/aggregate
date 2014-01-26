@@ -338,6 +338,17 @@ In very-pseudo-SQL, it would look something like
                         #:aggregates (thunk (list (-->count)
                                                   (-->sum))))]
 
+* @code{(group/agg-val xs #: key #:aggregates)}
+
+A wrapper for @code{group} but only returns the final aggregate values and not
+the aggregates themselves.
+
+@examples[#:eval my-eval
+                 (group/agg-val (range 10)
+                                #:key even?
+                                #:aggregates (thunk (list (-->count)
+                                                          (-->sum))))]
+
 @section{math/statistics wrappers}
 
 Many of these wrappers are intended mainly for use at a REPL or for quick
