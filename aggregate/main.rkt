@@ -90,7 +90,7 @@
        agg))
    
    (define (agg-finish agg)
-     (agg-val agg))])
+     agg)])
 
 ;; Simulates SQL SUM
 (struct aggregate/sum ((value #:mutable) key)
@@ -110,7 +110,7 @@
        agg))
    
    (define (agg-finish agg)
-     (agg-val agg))])
+     agg)])
 
 ;; Simulates SQL MIN but with customisable less-than operator and
 ;; saves both the "full" item and key-extracted value on state change.
@@ -132,7 +132,7 @@
            agg))))
    
    (define (agg-finish agg)
-     (agg-val agg))])
+     agg)])
 
 ;; Simulates SQL MAX but with customisable greater-than operator and
 ;; saves both the "full" item and key-extracted value on state change.
@@ -154,7 +154,7 @@
            agg))))
    
    (define (agg-finish agg)
-     (agg-val agg))])
+     agg)])
 
 ;; Simulates SQL AVG and calculates arithmetic mean.
 (struct aggregate/mean ((value #:mutable) key (n #:mutable))
@@ -181,7 +181,7 @@
                      (void)
                      (/ old (aggregate/mean-n agg)))])
        (set-aggregate/mean-value! agg new)
-       (agg-val agg)))])
+       agg))])
 
 (struct aggregate/list ((value #:mutable) key)
   #:transparent
@@ -205,7 +205,7 @@
                      (void)
                      (reverse old))])
        (set-aggregate/list-value! agg new)
-       (agg-val agg)))])
+       agg))])
 
 ;;;
 ;;; constructor wrappers
