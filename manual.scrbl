@@ -13,7 +13,8 @@
 @title{aggregate}
 
 @margin-note{IMPORTANT: Currently in development. There may be breakages before the
-             first release of this as a proper Racket 6 package.}
+             first release of this as a proper Racket 6 package. This documentation may
+             not be up-to-date with respect to the source too during development.}
 
 A Racket library to implement and use SQL-style aggregate functions over
 a stream of values, as well as simple wrappers for the math/statistics
