@@ -42,9 +42,9 @@
                          aggregator?)]
           [-->sum (->* () ((or/c number? void?) #:key (-> any/c number?))
                        aggregator?)]
-          [-->min (->* () (any/c #:key (-> any/c any) #:<operator (-> any/c boolean?))
+          [-->min (->* () (any/c #:key (-> any/c any) #:< (-> any/c any/c boolean?))
                        aggregator?)]
-          [-->max (->* () (any/c #:key (-> any/c any) #:>operator (-> any/c boolean?))
+          [-->max (->* () (any/c #:key (-> any/c any) #:> (-> any/c any/c boolean?))
                        aggregator?)]
           [-->mean (->* () ((or/c number? void?) #:key (-> any/c number?))
                         aggregator?)]
@@ -238,10 +238,10 @@
 (define (-->sum (initial (void)) #:key (key identity))
   (aggregate/sum initial key))
 
-(define (-->min (initial (void)) #:key (key identity) #:<operator (<operator <))
+(define (-->min (initial (void)) #:key (key identity) #:< (<operator <))
   (aggregate/min initial key <operator (void)))
 
-(define (-->max (initial (void)) #:key (key identity) #:>operator (>operator >))
+(define (-->max (initial (void)) #:key (key identity) #:> (>operator >))
   (aggregate/max initial key >operator (void)))
 
 (define (-->mean (initial (void)) #:key (key identity))

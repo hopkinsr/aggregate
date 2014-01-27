@@ -18,6 +18,8 @@
               (list 1 2 3 4 5))
 (check-equal? (aggregate (range 10) (list (-->min) (-->max) (-->count) (-->sum) (-->mean)))
               (list 0 9 10 45 9/2))
+(check-equal? (aggregate (list "carrot" "apple" "banana") (list (-->min #:< string<?) (-->max #:> string>?)))
+              (list "apple" "carrot"))
 
 ; aggregate/summary
 (check-equal? (aggregate/summary empty)
