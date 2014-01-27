@@ -43,7 +43,7 @@
                        aggregator?)]
           [-->mean (->* () ((or/c number? void?) #:key (-> any/c number?))
                         aggregator?)]
-          [-->list (->* () (any/c #:key (-> any/c any))
+          [-->list (->* () (any/c #:key (-> any/c any) #:finish (-> list? any))
                         aggregator?)]))
 
 ; aggregate building operations + wrappers
@@ -202,7 +202,7 @@
        (set-aggregate/mean-value! agg new)
        agg))])
 
-(struct aggregate/list ((value #:mutable) key)
+(struct aggregate/list ((value #:mutable) key finish)
   #:transparent
   #:methods gen:aggregator
   [(define (agg-val agg)
@@ -219,10 +219,11 @@
        agg))
    
    (define (agg-finish agg)
-     (let* ([old (aggregate/list-value agg)]
+     (let* ([finish (aggregate/list-finish agg)]
+            [old (aggregate/list-value agg)]
             [new (if (void? old)
                      (void)
-                     (reverse old))])
+                     (finish old))])
        (set-aggregate/list-value! agg new)
        agg))])
 
@@ -244,8 +245,8 @@
 (define (-->mean (initial (void)) #:key (key identity))
   (aggregate/mean initial key (if (void? initial) 0 1)))
 
-(define (-->list (initial (void)) #:key (key identity))
-  (aggregate/list initial key))
+(define (-->list (initial (void)) #:key (key identity) #:finish (finish reverse))
+  (aggregate/list initial key finish))
 
 ;;;
 ;;; aggregate building operations + wrappers

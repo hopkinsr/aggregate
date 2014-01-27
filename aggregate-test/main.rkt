@@ -28,6 +28,11 @@
 (check-equal? (aggregate (list (list 1 "b") (list 2 "c") (list 3 "a"))
                          (list (-->min #:key first #:output 'input) (-->max #:key second #:> string>? #:output 'input)))
               (list (list 1 "b") (list 2 "c")))
+; list aggregate
+(check-equal? (aggregate (range 10) (list (-->list)))
+              '((0 1 2 3 4 5 6 7 8 9)))
+(check-equal? (aggregate (range 10) (list (-->list #:finish (λ (lst) (sort lst >)))))
+              '((9 8 7 6 5 4 3 2 1 0)))
 
 ; group - like aggregate defaults to count
 (check-equal? (group empty) (make-hash))
