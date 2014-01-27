@@ -46,6 +46,8 @@
               (make-hash (list '(0 . 1) '(1 . 1) '(2 . 1) '(3 . 1) '(4 . 1))))
 (check-equal? (tally (range 10) #:key even?)
               (make-hash (list '(#t . 5) '(#f . 5))))
+(check-equal? (tally '(a a b c a b a))
+              (make-hash '((a . 4) (b . 2) (c . 1))))
 
 ; gather-by
 (check-equal? (gather-by empty) (make-hash))
