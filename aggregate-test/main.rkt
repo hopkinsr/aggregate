@@ -29,18 +29,6 @@
                          (list (-->min #:key first #:output 'input) (-->max #:key second #:> string>? #:output 'input)))
               (list (list 1 "b") (list 2 "c")))
 
-; aggregate/summary
-(check-equal? (aggregate/summary empty)
-              (list (list 'count 0)
-                    (list 'min (void))
-                    (list 'max (void))
-                    (list 'mean (void))))
-(check-equal? (aggregate/summary (range 10))
-              (list (list 'count 10)
-                    (list 'min 0)
-                    (list 'max 9)
-                    (list 'mean 9/2)))
-
 ; group - like aggregate defaults to count
 (check-equal? (group empty) (make-hash))
 (check-equal? (group (range 10) #:key (const #t))

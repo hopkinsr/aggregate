@@ -47,11 +47,9 @@
                         aggregator?)]))
 
 ; aggregate building operations + wrappers
-;(provide aggregate)
 (provide (contract-out
           [aggregate (->* (sequence?) ((listof aggregator?))
                           list?)]
-          [aggregate/summary (-> sequence? (listof (list/c symbol? (or/c number? void?))))]
           [group (->* (sequence?) (#:key (-> any/c any) #:aggregates (-> (listof aggregator?)))
                       (hash/c any/c list?))]
           [tally (->* (sequence?) (#:key (-> any/c any))
@@ -264,16 +262,6 @@
 (define (aggregate xs (aggs (list (-->count))))
   (for/list ([agg (aggregate* xs aggs)])
     (agg-val agg)))
-
-(define (aggregate/summary xs)
-  (define agg-summary (aggregate xs (list (-->count) (-->min) (-->max) (-->mean))))
-  (match agg-summary
-    [(list count min max mean)
-     ; =>
-     (list (list 'count count)
-           (list 'min min)
-           (list 'max max)
-           (list 'mean mean))]))
 
 ; like we do for aggregate* and aggregate - we'll have a private
 ; implementation to return the aggregates and a user facing one
