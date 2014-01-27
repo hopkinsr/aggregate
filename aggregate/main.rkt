@@ -18,14 +18,14 @@
 (require racket/generic)
 
 ; types and interfaces
-(provide (contract-out
+#;(provide (contract-out
           [aggregator? (-> any/c boolean?)]
           [agg-val (-> aggregator? any)]
           [agg-step (-> aggregator? any/c aggregator?)]
           [agg-finish (-> aggregator? aggregator?)]))
 
 ; interface helpers
-(provide (contract-out
+#;(provide (contract-out
           [agg-step/each (-> (listof aggregator?) any/c void)]
           [agg-step/list (-> (listof aggregator?) any/c (listof aggregator?))]
           [agg-finish/each (-> (listof aggregator?) void)]
