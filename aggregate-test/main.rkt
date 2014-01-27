@@ -60,6 +60,7 @@
 (check-equal? (gather-by/values empty) empty)
 (check-equal? (gather-by/values (range 10) #:key (const #t))
               (list (list 0 1 2 3 4 5 6 7 8 9)))
-; doesn't guarantee the order
-#;(check-equal? (gather-by/values (range 10) #:key (λ (x) (modulo x 3)))
+; gather-by/values doesn't guarantee the order - so we'll sort manually here
+(check-equal? (sort (gather-by/values (range 10) #:key (λ (x) (modulo x 3)))
+                     (λ (x y) (< (first x) (first y))))
               (list '(0 3 6 9) '(1 4 7) '(2 5 8)))
