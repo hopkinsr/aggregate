@@ -31,20 +31,15 @@
           [agg-finish/each (-> (listof aggregator?) void)]
           [agg-finish/list (-> (listof aggregator?) (listof aggregator?))]))
 
-; standard aggregates
-(provide (contract-out
-          [aggregate/min-item (-> aggregator? any)]
-          [aggregate/max-item (-> aggregator? any)]))
-
 ; constructor wrappers
 (provide (contract-out
           [-->count (->* () (integer? #:key (-> any/c integer?))
                          aggregator?)]
           [-->sum (->* () ((or/c number? void?) #:key (-> any/c number?))
                        aggregator?)]
-          [-->min (->* () (any/c #:key (-> any/c any) #:< (-> any/c any/c boolean?))
+          [-->min (->* () (any/c #:key (-> any/c any) #:< (-> any/c any/c boolean?) #:output (or/c 'from-key 'input))
                        aggregator?)]
-          [-->max (->* () (any/c #:key (-> any/c any) #:> (-> any/c any/c boolean?))
+          [-->max (->* () (any/c #:key (-> any/c any) #:> (-> any/c any/c boolean?) #:output (or/c 'from-key 'input))
                        aggregator?)]
           [-->mean (->* () ((or/c number? void?) #:key (-> any/c number?))
                         aggregator?)]
@@ -136,11 +131,13 @@
 
 ;; Simulates SQL MIN but with customisable less-than operator and
 ;; saves both the "full" item and key-extracted value on state change.
-(struct aggregate/min ((value #:mutable) key <operator (item #:mutable))
+(struct aggregate/min ((value #:mutable) key <operator output (item #:mutable))
   #:transparent
   #:methods gen:aggregator
   [(define (agg-val agg)
-     (aggregate/min-value agg))
+     (if (equal? (aggregate/min-output agg) 'from-key)
+         (aggregate/min-value agg)
+         (aggregate/min-item agg)))
    
    (define (agg-step agg x)
      (let* ([key (aggregate/min-key agg)]
@@ -158,11 +155,13 @@
 
 ;; Simulates SQL MAX but with customisable greater-than operator and
 ;; saves both the "full" item and key-extracted value on state change.
-(struct aggregate/max ((value #:mutable) key >operator (item #:mutable))
+(struct aggregate/max ((value #:mutable) key >operator output (item #:mutable))
   #:transparent
   #:methods gen:aggregator
   [(define (agg-val agg)
-     (aggregate/max-value agg))
+     (if (equal? (aggregate/max-output agg) 'from-key)
+         (aggregate/max-value agg)
+         (aggregate/max-item agg)))
    
    (define (agg-step agg x)
      (let* ([key (aggregate/max-key agg)]
@@ -238,11 +237,11 @@
 (define (-->sum (initial (void)) #:key (key identity))
   (aggregate/sum initial key))
 
-(define (-->min (initial (void)) #:key (key identity) #:< (<operator <))
-  (aggregate/min initial key <operator (void)))
+(define (-->min (initial (void)) #:key (key identity) #:< (<operator <) #:output (output 'from-key))
+  (aggregate/min initial key <operator output (void)))
 
-(define (-->max (initial (void)) #:key (key identity) #:> (>operator >))
-  (aggregate/max initial key >operator (void)))
+(define (-->max (initial (void)) #:key (key identity) #:> (>operator >) #:output (output 'from-key))
+  (aggregate/max initial key >operator output (void)))
 
 (define (-->mean (initial (void)) #:key (key identity))
   (aggregate/mean initial key (if (void? initial) 0 1)))

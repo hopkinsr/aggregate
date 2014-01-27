@@ -18,8 +18,16 @@
               (list 1 2 3 4 5))
 (check-equal? (aggregate (range 10) (list (-->min) (-->max) (-->count) (-->sum) (-->mean)))
               (list 0 9 10 45 9/2))
+; aggregates with custom operators
 (check-equal? (aggregate (list "carrot" "apple" "banana") (list (-->min #:< string<?) (-->max #:> string>?)))
               (list "apple" "carrot"))
+; aggregates with custom output - the default is 'from-key but we'll specify here for clarity
+(check-equal? (aggregate (list (list 1 "b") (list 2 "c") (list 3 "a"))
+                         (list (-->min #:key first #:output 'from-key) (-->max #:key second #:> string>? #:output 'from-key)))
+              (list 1 "c"))
+(check-equal? (aggregate (list (list 1 "b") (list 2 "c") (list 3 "a"))
+                         (list (-->min #:key first #:output 'input) (-->max #:key second #:> string>? #:output 'input)))
+              (list (list 1 "b") (list 2 "c")))
 
 ; aggregate/summary
 (check-equal? (aggregate/summary empty)
