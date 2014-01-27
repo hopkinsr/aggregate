@@ -309,6 +309,5 @@
 
 ; like Mathematica GatherBy and just return the values in a list
 (define (gather-by/values xs #:key (key identity))
-  (define gathered (gather-by xs #:key key))
-  (hash-values gathered))
+  (hash-values (gather-by xs #:key key)))
 
