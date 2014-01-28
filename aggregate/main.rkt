@@ -292,7 +292,7 @@
 
 ; like Mathematica tally
 (define (tally xs #:key (key identity))
-  (define grouped (group xs #:key key #:aggregates (λ () (list (-->count)))))
+  (define grouped (group xs #:key key #:aggregates (λ () (list (-->inc)))))
   (for ([group-key (hash-keys grouped)])
     (let ([agg-vals (hash-ref grouped group-key)])
       (hash-set! grouped group-key (first agg-vals))))
