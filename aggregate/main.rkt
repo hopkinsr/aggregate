@@ -25,6 +25,8 @@
 
 ; constructor wrappers
 (provide (contract-out
+          [-->inc (->* () (integer?)
+                       aggregator?)]
           [-->count (->* () (integer? #:key (-> any/c integer?))
                          aggregator?)]
           [-->sum (->* () ((or/c number? void?) #:key (-> any/c number?))
@@ -63,7 +65,24 @@
 ;;; standard aggregates
 ;;;
 
-;; Simulates SQL COUNT.
+;; Simulates SQL COUNT
+(struct aggregate/inc ((value #:mutable))
+  #:transparent
+  #:methods gen:aggregator
+  [(define (agg-val agg)
+     (aggregate/inc-value agg))
+   
+   (define (agg-step agg x)
+     (let* ([old (aggregate/inc-value agg)]
+            [new (add1 old)])
+       (set-aggregate/inc-value! agg new)
+       agg))
+   
+   (define (agg-finish agg)
+     agg)])
+
+;; Simulates SQL COUNT - but more advanced than inc by allowing
+;; a custom key
 (struct aggregate/count ((value #:mutable) key)
   #:transparent
   #:methods gen:aggregator
@@ -204,6 +223,9 @@
 ;;;
 ;;; constructor wrappers
 ;;;
+(define (-->inc (initial 0))
+  (aggregate/inc initial))
+
 (define (-->count (initial 0) #:key (key (const 1)))
   (aggregate/count initial key))
 
