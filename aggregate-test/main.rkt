@@ -11,15 +11,6 @@
 (check-equal? (aggregate empty (list (-->count 17))) '(17))
 (check-equal? (aggregate (range 10) (list (-->count 17))) '(27))
 
-; same tests again for inc as they must give same results when count has no key
-(check-equal? (aggregate empty (list (-->inc))) '(0))
-(check-equal? (aggregate (range 10) (list (-->inc))) '(10))
-
-; custom starting point for inc
-(check-equal? (aggregate empty (list (-->inc))) '(0))
-(check-equal? (aggregate empty (list (-->inc 17))) '(17))
-(check-equal? (aggregate (range 10) (list (-->inc 17))) '(27))
-
 ; basic aggregates
 (check-equal? (aggregate empty (list (-->min) (-->max) (-->count) (-->sum) (-->mean)))
               (list (void) (void) 0 (void) (void)))

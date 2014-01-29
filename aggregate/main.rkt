@@ -25,8 +25,6 @@
 
 ; constructor wrappers
 (provide (contract-out
-          [-->inc (->* () (integer?)
-                       aggregator?)]
           [-->count (->* () (integer? #:key (-> any/c integer?))
                          aggregator?)]
           [-->sum (->* () ((or/c number? void?) #:key (-> any/c number?))
@@ -292,7 +290,7 @@
 
 ; like Mathematica tally
 (define (tally xs #:key (key identity))
-  (define grouped (group xs #:key key #:aggregates (λ () (list (-->inc)))))
+  (define grouped (group xs #:key key #:aggregates (λ () (list (-->count)))))
   (for ([group-key (hash-keys grouped)])
     (let ([agg-vals (hash-ref grouped group-key)])
       (hash-set! grouped group-key (first agg-vals))))
