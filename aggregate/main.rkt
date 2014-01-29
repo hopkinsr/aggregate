@@ -290,11 +290,12 @@
 
 ; like Mathematica tally
 (define (tally xs #:key (key identity))
-  (define grouped (group xs #:key key #:aggregates (λ () (list (-->count)))))
-  (for ([group-key (hash-keys grouped)])
-    (let ([agg-vals (hash-ref grouped group-key)])
-      (hash-set! grouped group-key (first agg-vals))))
-  grouped)
+  (let ([groups (make-hash)])
+    (for ([x xs])
+      (let* ([group-key (key x)]
+             [group-value (hash-ref groups group-key 0)])
+             (hash-set! groups group-key (add1 group-value))))
+    groups))
 
 ; like Mathematica GatherBy - but GatherBy returns just the values we
 ; return the keys and values
