@@ -59,147 +59,204 @@
   (agg-step aggregator x)
   (agg-finish aggregator))
 
+;; dispatch manually and fallback to generic.
+;; testing shows 2x-5x performance increase
+(define (dispatch-agg-val agg)
+  (cond
+    [(aggregate/list? agg) (agg-val/list agg)]
+    [(aggregate/count? agg) (agg-val/count agg)]
+    [(aggregate/sum? agg) (agg-val/sum agg)]
+    [(aggregate/min? agg) (agg-val/min agg)]
+    [(aggregate/max? agg) (agg-val/max agg)]
+    [(aggregate/mean? agg) (agg-val/mean agg)]
+    [else (agg-val agg)]))
+
+(define (dispatch-agg-step agg x)
+  (cond
+    [(aggregate/list? agg) (agg-step/list agg x)]
+    [(aggregate/count? agg) (agg-step/count agg x)]
+    [(aggregate/sum? agg) (agg-step/sum agg x)]
+    [(aggregate/min? agg) (agg-step/min agg x)]
+    [(aggregate/max? agg) (agg-step/max agg x)]
+    [(aggregate/mean? agg) (agg-step/mean agg x)]
+    [else (agg-step agg x)]))
+
+(define (dispatch-agg-finish agg)
+  (cond
+    [(aggregate/list? agg) (agg-finish/list agg)]
+    [(aggregate/count? agg) (agg-finish/count agg)]
+    [(aggregate/sum? agg) (agg-finish/sum agg)]
+    [(aggregate/min? agg) (agg-finish/min agg)]
+    [(aggregate/max? agg) (agg-finish/max agg)]
+    [(aggregate/mean? agg) (agg-finish/mean agg)]
+    [else (agg-finish agg)]))
+
 ;;;
 ;;; standard aggregates
 ;;;
 
 ;; Simulates SQL COUNT
+(define (agg-val/count agg)
+  (aggregate/count-value agg))
+
+(define (agg-step/count agg x)
+  (let* ([key (aggregate/count-key agg)]
+         [unlocked (key x)]
+         [old (aggregate/count-value agg)]
+         [new (+ old unlocked)])
+    (set-aggregate/count-value! agg new)
+    agg))
+
+(define (agg-finish/count agg)
+  agg)
+
 (struct aggregate/count ((value #:mutable) key)
   #:transparent
   #:methods gen:aggregator
-  [(define (agg-val agg)
-     (aggregate/count-value agg))
-   
-   (define (agg-step agg x)
-     (let* ([key (aggregate/count-key agg)]
-            [unlocked (key x)]
-            [old (aggregate/count-value agg)]
-            [new (+ old unlocked)])
-       (set-aggregate/count-value! agg new)
-       agg))
-   
-   (define (agg-finish agg)
-     agg)])
+  [(define agg-val agg-val/count)
+   (define agg-step agg-step/count)
+   (define agg-finish agg-finish/count)])
 
 ;; Simulates SQL SUM
+(define (agg-val/sum agg)
+  (aggregate/sum-value agg))
+
+(define (agg-step/sum agg x)
+  (let* ([key (aggregate/sum-key agg)]
+         [unlocked (key x)]
+         [old (aggregate/sum-value agg)]
+         [new (if (void? old)
+                  unlocked
+                  (+ old unlocked))])
+    (set-aggregate/sum-value! agg new)
+    agg))
+
+(define (agg-finish/sum agg)
+  agg)
+
 (struct aggregate/sum ((value #:mutable) key)
   #:transparent
   #:methods gen:aggregator
-  [(define (agg-val agg)
-     (aggregate/sum-value agg))
-   
-   (define (agg-step agg x)
-     (let* ([key (aggregate/sum-key agg)]
-            [unlocked (key x)]
-            [old (aggregate/sum-value agg)]
-            [new (if (void? old)
-                     unlocked
-                     (+ old unlocked))])
-       (set-aggregate/sum-value! agg new)
-       agg))
-   
-   (define (agg-finish agg)
-     agg)])
+  [(define agg-val agg-val/sum)
+   (define agg-step agg-step/sum)
+   (define agg-finish agg-finish/sum)])
 
 ;; Simulates SQL MIN but with customisable less-than operator and
 ;; saves both the "full" item and key-extracted value on state change.
+(define (agg-val/min agg)
+  (if (equal? (aggregate/min-output agg) 'from-key)
+      (aggregate/min-value agg)
+      (aggregate/min-item agg)))
+
+(define (agg-step/min agg x)
+  (let* ([key (aggregate/min-key agg)]
+         [unlocked (key x)]
+         [<operator (aggregate/min-<operator agg)]
+         [old (aggregate/min-value agg)])
+    (when (or (void? old) (<operator unlocked old))
+      (begin
+        (set-aggregate/min-item! agg x)
+        (set-aggregate/min-value! agg unlocked)
+        agg))))
+
+(define (agg-finish/min agg)
+  agg)
+
 (struct aggregate/min ((value #:mutable) key <operator output (item #:mutable))
   #:transparent
   #:methods gen:aggregator
-  [(define (agg-val agg)
-     (if (equal? (aggregate/min-output agg) 'from-key)
-         (aggregate/min-value agg)
-         (aggregate/min-item agg)))
-   
-   (define (agg-step agg x)
-     (let* ([key (aggregate/min-key agg)]
-            [unlocked (key x)]
-            [<operator (aggregate/min-<operator agg)]
-            [old (aggregate/min-value agg)])
-       (when (or (void? old) (<operator unlocked old))
-         (begin
-           (set-aggregate/min-item! agg x)
-           (set-aggregate/min-value! agg unlocked)
-           agg))))
-   
-   (define (agg-finish agg)
-     agg)])
+  [(define agg-val agg-val/min)
+   (define agg-step agg-step/min)
+   (define agg-finish agg-finish/min)])
 
 ;; Simulates SQL MAX but with customisable greater-than operator and
 ;; saves both the "full" item and key-extracted value on state change.
+(define (agg-val/max agg)
+  (if (equal? (aggregate/max-output agg) 'from-key)
+      (aggregate/max-value agg)
+      (aggregate/max-item agg)))
+
+(define (agg-step/max agg x)
+  (let* ([key (aggregate/max-key agg)]
+         [unlocked (key x)]
+         [>operator (aggregate/max->operator agg)]
+         [old (aggregate/max-value agg)])
+    (when (or (void? old) (>operator unlocked old))
+      (begin
+        (set-aggregate/max-item! agg x)
+        (set-aggregate/max-value! agg unlocked)
+        agg))))
+
+(define (agg-finish/max agg)
+  agg)
+
 (struct aggregate/max ((value #:mutable) key >operator output (item #:mutable))
   #:transparent
   #:methods gen:aggregator
-  [(define (agg-val agg)
-     (if (equal? (aggregate/max-output agg) 'from-key)
-         (aggregate/max-value agg)
-         (aggregate/max-item agg)))
-   
-   (define (agg-step agg x)
-     (let* ([key (aggregate/max-key agg)]
-            [unlocked (key x)]
-            [>operator (aggregate/max->operator agg)]
-            [old (aggregate/max-value agg)])
-       (when (or (void? old) (>operator unlocked old))
-         (begin
-           (set-aggregate/max-item! agg x)
-           (set-aggregate/max-value! agg unlocked)
-           agg))))
-   
-   (define (agg-finish agg)
-     agg)])
+  [(define agg-val agg-val/max)
+   (define agg-step agg-step/max)
+   (define agg-finish agg-finish/max)])
 
 ;; Simulates SQL AVG and calculates arithmetic mean.
+(define (agg-val/mean agg)
+  (aggregate/mean-value agg))
+
+(define (agg-step/mean agg x)
+  (let* ([key (aggregate/mean-key agg)]
+         [unlocked (key x)]
+         [old-n (aggregate/mean-n agg)]
+         [old-value (aggregate/mean-value agg)]
+         [new-value (if (void? old-value)
+                        unlocked
+                        (+ old-value unlocked))])
+    (set-aggregate/mean-n! agg (add1 old-n))
+    (set-aggregate/mean-value! agg new-value)
+    agg))
+
+(define (agg-finish/mean agg)
+  (let* ([old (aggregate/mean-value agg)]
+         [new (if (void? old)
+                  (void)
+                  (/ old (aggregate/mean-n agg)))])
+    (set-aggregate/mean-value! agg new)
+    agg))
+
 (struct aggregate/mean ((value #:mutable) key (n #:mutable))
   #:transparent
   #:methods gen:aggregator
-  [(define (agg-val agg)
-     (aggregate/mean-value agg))
-   
-   (define (agg-step agg x)
-     (let* ([key (aggregate/mean-key agg)]
-            [unlocked (key x)]
-            [old-n (aggregate/mean-n agg)]
-            [old-value (aggregate/mean-value agg)]
-            [new-value (if (void? old-value)
-                           unlocked
-                           (+ old-value unlocked))])
-       (set-aggregate/mean-n! agg (add1 old-n))
-       (set-aggregate/mean-value! agg new-value)
-       agg))
-   
-   (define (agg-finish agg)
-     (let* ([old (aggregate/mean-value agg)]
-            [new (if (void? old)
-                     (void)
-                     (/ old (aggregate/mean-n agg)))])
-       (set-aggregate/mean-value! agg new)
-       agg))])
+  [(define agg-val agg-val/mean)
+   (define agg-step agg-step/mean)
+   (define agg-finish agg-finish/mean)])
+
+; list aggregate
+(define (agg-val/list agg)
+  (aggregate/list-value agg))
+
+(define (agg-step/list agg x)
+  (let* ([key (aggregate/list-key agg)]
+         [unlocked (key x)]
+         [old (aggregate/list-value agg)]
+         [new (if (void? old)
+                  (list unlocked)
+                  (cons unlocked old))])
+    (set-aggregate/list-value! agg new)
+    agg))
+
+(define (agg-finish/list agg)
+  (let* ([finish (aggregate/list-finish agg)]
+         [old (aggregate/list-value agg)]
+         [new (if (void? old)
+                  (void)
+                  (finish old))])
+    (set-aggregate/list-value! agg new)
+    agg))
 
 (struct aggregate/list ((value #:mutable) key finish)
   #:transparent
   #:methods gen:aggregator
-  [(define (agg-val agg)
-     (aggregate/list-value agg))
-   
-   (define (agg-step agg x)
-     (let* ([key (aggregate/list-key agg)]
-            [unlocked (key x)]
-            [old (aggregate/list-value agg)]
-            [new (if (void? old)
-                     (list unlocked)
-                     (cons unlocked old))])
-       (set-aggregate/list-value! agg new)
-       agg))
-   
-   (define (agg-finish agg)
-     (let* ([finish (aggregate/list-finish agg)]
-            [old (aggregate/list-value agg)]
-            [new (if (void? old)
-                     (void)
-                     (finish old))])
-       (set-aggregate/list-value! agg new)
-       agg))])
+  [(define agg-val agg-val/list)
+   (define agg-step agg-step/list)
+   (define agg-finish agg-finish/list)])
 
 ;;;
 ;;; constructor wrappers
@@ -231,14 +288,14 @@
 (define (aggregate* xs aggs)
   (for* ([x xs]
          [agg aggs])
-    (agg-step agg x))
+    (dispatch-agg-step agg x))
   (for/list ([agg aggs])
-    (agg-finish agg)))
+    (dispatch-agg-finish agg)))
 
 ; aggregate - return the finished values
 (define (aggregate xs (aggs (list (-->count))))
   (for/list ([agg (aggregate* xs aggs)])
-    (agg-val agg)))
+    (dispatch-agg-val agg)))
 
 ; like we do for aggregate* and aggregate - we'll have a private
 ; implementation to return the aggregates and a user facing one
@@ -274,7 +331,7 @@
     (for ([x xs])
       (let* ([group-key (key x)]
              [group-value (hash-ref groups group-key 0)])
-             (hash-set! groups group-key (add1 group-value))))
+        (hash-set! groups group-key (add1 group-value))))
     groups))
 
 ; like Mathematica GatherBy - but GatherBy returns just the values we
