@@ -307,22 +307,22 @@
              [group-value (hash-ref groups group-key #f)])
         (if group-value
             (for ([agg group-value])
-              (agg-step agg x))
+              (dispatch-agg-step agg x))
             (let ([aggs (for/list ([agg (aggregates)])
-                          (agg-step agg x))])
+                          (dispatch-agg-step agg x))])
               (hash-set! groups group-key aggs)))))
     ; visited everything - now finish the aggregates
     (for ([group-key (hash-keys groups)])
       (let ([aggs (hash-ref groups group-key)])
         (for ([agg aggs])
-          (agg-finish agg))))
+          (dispatch-agg-finish agg))))
     groups))
 
 (define (group xs #:key (key identity) #:aggregates (aggregates (λ () (list (-->count)))))
   (define groups (group* xs #:key key #:aggregates aggregates))
   (for ([group-key (hash-keys groups)])
     (let ([aggs (hash-ref groups group-key)])
-      (hash-set! groups group-key (map agg-val aggs))))
+      (hash-set! groups group-key (map dispatch-agg-val aggs))))
   groups)
 
 ; like Mathematica tally
