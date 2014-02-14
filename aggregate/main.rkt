@@ -262,7 +262,7 @@
 ;;;
 ;;; constructor wrappers
 ;;;
-(define (-->count (initial 0) #:key (key (const 1)))
+(define (-->count (initial 0) #:key (key (const #t)))
   (aggregate/count initial key))
 
 (define (-->sum (initial (void)) #:key (key identity))
