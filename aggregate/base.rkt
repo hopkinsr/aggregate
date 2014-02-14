@@ -17,7 +17,7 @@
 (require racket/generic)
 
 ; types and interfaces
-#;(provide (contract-out
+(provide (contract-out
           [aggregator? (-> any/c boolean?)]
           [agg-val (-> aggregator? any)]
           [agg-step (-> aggregator? any/c aggregator?)]
