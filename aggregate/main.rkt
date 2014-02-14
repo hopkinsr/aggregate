@@ -25,7 +25,7 @@
 
 ; constructor wrappers
 (provide (contract-out
-          [-->count (->* () (integer? #:key (-> any/c integer?))
+          [-->count (->* () (integer? #:key (-> any/c boolean?))
                          aggregator?)]
           [-->sum (->* () ((or/c number? void?) #:key (-> any/c number?))
                        aggregator?)]
