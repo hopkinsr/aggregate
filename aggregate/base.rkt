@@ -1,4 +1,4 @@
-#lang racket
+#lang racket/base
 ;;; aggregate/base
 ;;;
 ;;; A Racket library which implements and provides a Racket generics interface
@@ -14,7 +14,9 @@
 ;;; * aggregate building operations + wrappers
 ;;; 
 
-(require racket/generic)
+(require racket/contract/base
+         racket/function
+         racket/generic)
 
 ; types and interfaces
 (provide (contract-out

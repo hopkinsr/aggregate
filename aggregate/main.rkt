@@ -1,10 +1,13 @@
-#lang racket
+#lang racket/base
 ;;; aggregate
 ;;;
 ;;; A Racket library which implements and provides a Racket generics interface
 ;;; for SQL-style aggregate operations, as well as common operations to group
 ;;; values Mathematica-style.
 ;;;
+(require racket/contract/base
+         racket/function
+         racket/list)
 (require "base.rkt")
 (provide (all-from-out "base.rkt"))
 

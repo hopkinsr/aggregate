@@ -1,5 +1,7 @@
-#lang racket
+#lang racket/base
 (require rackunit)
+(require racket/function
+         racket/list)
 (require "../aggregate/main.rkt")
 
 ; tally
