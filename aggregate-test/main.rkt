@@ -10,6 +10,8 @@
 (check-equal? (aggregate empty (list (-->count))) '(0))
 (check-equal? (aggregate empty (list (-->count 17))) '(17))
 (check-equal? (aggregate (range 10) (list (-->count 17))) '(27))
+(check-equal? (aggregate (range 10) (list (-->count #:key even?))) '(5))
+(check-equal? (aggregate (range 10) (list (-->count 17 #:key even?))) '(22))
 
 ; basic aggregates
 (check-equal? (aggregate empty (list (-->min) (-->max) (-->count) (-->sum) (-->mean)))
