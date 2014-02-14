@@ -102,8 +102,9 @@
 (define (agg-step/count agg x)
   (let* ([key (aggregate/count-key agg)]
          [unlocked (key x)]
+         [to-count (if unlocked 1 0)]
          [old (aggregate/count-value agg)]
-         [new (+ old unlocked)])
+         [new (+ old to-count)])
     (set-aggregate/count-value! agg new)
     agg))
 
